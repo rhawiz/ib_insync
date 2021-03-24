@@ -288,7 +288,9 @@ def run(*awaitables: Awaitable, timeout: float = None):
     asyncio.TimeoutError if the awaitables are not ready within the
     timeout period.
     """
-    loop = asyncio.get_event_loop()
+    # loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     if not awaitables:
         if loop.is_running():
             return
