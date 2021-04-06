@@ -276,6 +276,7 @@ class timeit:
     def __exit__(self, *_args):
         print(self.title + ' took ' + formatSI(time.time() - self.t0) + 's')
 
+loop = None
 
 def run(*awaitables: Awaitable, timeout: float = None):
     """
@@ -289,7 +290,9 @@ def run(*awaitables: Awaitable, timeout: float = None):
     timeout period.
     """
     # loop = asyncio.get_event_loop()
-    loop = asyncio.new_event_loop()
+    global loop
+    if loop is None:
+        loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     if not awaitables:
         if loop.is_running():
