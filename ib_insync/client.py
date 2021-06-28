@@ -14,7 +14,7 @@ from .connection import Connection
 from .contract import Contract
 from .decoder import Decoder
 from .objects import ConnectionStats
-from .util import UNSET_DOUBLE, UNSET_INTEGER, dataclassAsTuple, run
+from .util import UNSET_DOUBLE, UNSET_INTEGER, dataclassAsTuple, run, loop
 
 __all__ = ['Client']
 
@@ -134,7 +134,9 @@ class Client:
         return self._serverVersion
 
     def run(self):
-        loop = asyncio.get_event_loop()
+        global loop
+        if loop is None:
+            loop = asyncio.new_event_loop()
         loop.run_forever()
 
     def isConnected(self):
@@ -264,7 +266,9 @@ class Client:
         self.sendMsg(msg.getvalue())
 
     def sendMsg(self, msg):
-        loop = asyncio.get_event_loop()
+        global loop
+        if loop is None:
+            loop = asyncio.new_event_loop()
         t = loop.time()
         times = self._timeQ
         msgs = self._msgQ
