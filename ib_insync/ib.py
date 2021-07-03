@@ -5,7 +5,7 @@ import copy
 import datetime
 import logging
 import time
-from typing import Awaitable, Iterator, List, Optional, Union
+from typing import Awaitable, Dict, Iterator, List, Optional, Union
 
 from eventkit import Event
 
@@ -260,11 +260,11 @@ class IB:
             host: Host name or IP address.
             port: Port number.
             clientId: ID number to use for this client; must be unique per
-                connection. Setting clientId=0 will automatically merge manual
-                TWS trading with this client.
+              connection. Setting clientId=0 will automatically merge manual
+              TWS trading with this client.
             timeout: If establishing the connection takes longer than
-                ``timeout`` seconds then the ``asyncio.TimeoutError`` exception
-                is raised. Set to 0 to disable timeout.
+              ``timeout`` seconds then the ``asyncio.TimeoutError`` exception
+              is raised. Set to 0 to disable timeout.
             readonly: Set to ``True`` when API is in read-only mode.
             account: Main account to receive updates for.
         """
@@ -1442,7 +1442,7 @@ class IB:
     def calculateOptionPrice(
             self, contract: Contract,
             volatility: float, underPrice: float,
-            optPrcOptions=None) -> OptionComputation:
+            optPrcOptions: List[TagValue] = []) -> OptionComputation:
         """
         Calculate the option price given the volatility.
 
@@ -1634,12 +1634,12 @@ class IB:
                 account = accounts[0]
 
             # prepare initializing  requests
-            reqs = {}  # name -> request
+            reqs: Dict = {}  # name -> request
             reqs['positions'] = self.reqPositionsAsync()
             if not readonly and self.client.serverVersion() >= 150:
                 reqs['completed orders'] = self.reqCompletedOrdersAsync(False)
             if account:
-                reqs['account updates'] =self.reqAccountUpdatesAsync(account)
+                reqs['account updates'] = self.reqAccountUpdatesAsync(account)
             if len(accounts) <= self.MaxSyncedSubAccounts:
                 for acc in accounts:
                     reqs[f'account updates for {acc}'] = \
@@ -1664,7 +1664,7 @@ class IB:
 
             self._logger.info('Synchronization complete')
             self.connectedEvent.emit()
-        except Exception:
+        except BaseException:
             self.disconnect()
             raise
         return self
@@ -1819,7 +1819,7 @@ class IB:
             return None
 
     async def reqMarketRuleAsync(
-            self, marketRuleId: int) -> Optional[PriceIncrement]:
+            self, marketRuleId: int) -> Optional[List[PriceIncrement]]:
         future = self.wrapper.startReq(f'marketRule-{marketRuleId}')
         try:
             self.client.reqMarketRule(marketRuleId)

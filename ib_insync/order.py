@@ -65,8 +65,8 @@ class Order:
     shortSaleSlot: int = 0
     exemptCode: int = -1
     discretionaryAmt: float = 0.0
-    eTradeOnly: bool = True
-    firmQuoteOnly: bool = True
+    eTradeOnly: bool = False
+    firmQuoteOnly: bool = False
     nbboPriceCap: float = UNSET_DOUBLE
     optOutSmartRouting: bool = False
     auctionStrategy: int = 0
@@ -177,7 +177,8 @@ class Order:
 
 class LimitOrder(Order):
 
-    def __init__(self, action, totalQuantity, lmtPrice, **kwargs):
+    def __init__(self, action: str, totalQuantity: float, lmtPrice: float,
+                 **kwargs):
         Order.__init__(
             self, orderType='LMT', action=action,
             totalQuantity=totalQuantity, lmtPrice=lmtPrice, **kwargs)
@@ -185,7 +186,7 @@ class LimitOrder(Order):
 
 class MarketOrder(Order):
 
-    def __init__(self, action, totalQuantity, **kwargs):
+    def __init__(self, action: str, totalQuantity: float, **kwargs):
         Order.__init__(
             self, orderType='MKT', action=action,
             totalQuantity=totalQuantity, **kwargs)
@@ -193,7 +194,8 @@ class MarketOrder(Order):
 
 class StopOrder(Order):
 
-    def __init__(self, action, totalQuantity, stopPrice, **kwargs):
+    def __init__(self, action: str, totalQuantity: float, stopPrice: float,
+                 **kwargs):
         Order.__init__(
             self, orderType='STP', action=action,
             totalQuantity=totalQuantity, auxPrice=stopPrice, **kwargs)
@@ -201,7 +203,8 @@ class StopOrder(Order):
 
 class StopLimitOrder(Order):
 
-    def __init__(self, action, totalQuantity, lmtPrice, stopPrice, **kwargs):
+    def __init__(self, action: str, totalQuantity: float, lmtPrice: float,
+                 stopPrice: float, **kwargs):
         Order.__init__(
             self, orderType='STP LMT', action=action,
             totalQuantity=totalQuantity, lmtPrice=lmtPrice,
@@ -212,8 +215,8 @@ class StopLimitOrder(Order):
 class OrderStatus:
     orderId: int = 0
     status: str = ''
-    filled: int = 0
-    remaining: int = 0
+    filled: float = 0.0
+    remaining: float = 0.0
     avgFillPrice: float = 0.0
     permId: int = 0
     parentId: int = 0

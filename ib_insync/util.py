@@ -299,9 +299,10 @@ def run(*awaitables: Awaitable, timeout: float = None):
             return
         loop.run_forever()
         result = None
-        all_tasks = (
-            asyncio.all_tasks(loop)  # type: ignore
-            if sys.version_info >= (3, 7) else asyncio.Task.all_tasks())
+        if sys.version_info >= (3, 7):
+            all_tasks = asyncio.all_tasks(loop)  # type: ignore
+        else:
+            all_tasks = asyncio.Task.all_tasks()  # type: ignore
         if all_tasks:
             # cancel pending tasks
             f = asyncio.gather(*all_tasks)
@@ -458,32 +459,36 @@ def useQt(qtLib: str = 'PyQt5', period: float = 0.01):
     Run combined Qt5/asyncio event loop.
 
     Args:
-        qtLib: Name of Qt library to use, can be 'PyQt5' or 'PySide2'.
+        qtLib: Name of Qt library to use:
+
+          * PyQt5
+          * PyQt6
+          * PySide2
+          * PySide6
         period: Period in seconds to poll Qt.
     """
     def qt_step():
         loop.call_later(period, qt_step)
         if not stack:
-            qloop = QEventLoop()
-            timer = QTimer()
+            qloop = qc.QEventLoop()
+            timer = qc.QTimer()
             timer.timeout.connect(qloop.quit)
             stack.append((qloop, timer))
         qloop, timer = stack.pop()
         timer.start(0)
-        qloop.exec_()
+        qloop.exec() if qtLib == 'PyQt6' else qloop.exec_()
         timer.stop()
         stack.append((qloop, timer))
         qApp.processEvents()
 
-    if qtLib not in ('PyQt5', 'PySide2'):
+    if qtLib not in ('PyQt5', 'PyQt6', 'PySide2', 'PySide6'):
         raise RuntimeError(f'Unknown Qt library: {qtLib}')
-    if qtLib == 'PyQt5':
-        from PyQt5.Qt import QApplication, QTimer, QEventLoop
-    else:
-        from PySide2.QtWidgets import QApplication
-        from PySide2.QtCore import QTimer, QEventLoop
+    from importlib import import_module
+    qc = import_module(qtLib + '.QtCore')
+    qw = import_module(qtLib + '.QtWidgets')
     global qApp
-    qApp = QApplication.instance() or QApplication(sys.argv)  # type: ignore
+    qApp = (qw.QApplication.instance()     # type: ignore
+            or qw.QApplication(sys.argv))  # type: ignore
     loop = asyncio.get_event_loop()
     stack: list = []
     qt_step()
